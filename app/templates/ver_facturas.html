@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Facturas</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Facturas Procesadas</h2>
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Total Facturado</th>
+                <th>Cliente</th>
+            </tr>
+            {% for factura in facturas %}
+            <tr>
+                <td>{{ factura.id }}</td>
+                <td>{{ factura.nombre }}</td>
+                <td>{{ factura.fecha }}</td>
+                <td>{{ factura.total_facturado }}</td>
+                <td>{{ factura.cliente }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
