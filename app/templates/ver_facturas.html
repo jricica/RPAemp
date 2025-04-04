@@ -3,29 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ver Facturas</title>
+    <title>Facturas Procesadas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        a {
+            text-decoration: none;
+        }
+
+        /* Media query for smaller screens */
+        @media (max-width: 768px) {
+            table th, table td {
+                font-size: 12px;
+                padding: 8px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+            table th, table td {
+                font-size: 10px;
+                padding: 6px;
+            }
+            button {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Facturas Procesadas</h2>
-        <table border="1">
+        <table>
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Fecha</th>
                 <th>Total Facturado</th>
                 <th>Cliente</th>
+                <th>NIT Emisor</th>
+                <th>NIT Receptor</th>
+                <th>Número de Autorización</th>
             </tr>
             {% for factura in facturas %}
             <tr>
                 <td>{{ factura.id }}</td>
                 <td>{{ factura.nombre }}</td>
                 <td>{{ factura.fecha }}</td>
-                <td>{{ factura.total_facturado }}</td>
+                <td>Q {{ factura.total_facturado }}</td>
                 <td>{{ factura.cliente }}</td>
+                <td>{{ factura.nit_emisor }}</td>
+                <td>{{ factura.nit_receptor }}</td>
+                <td>{{ factura.numero_autorizacion }}</td>
             </tr>
             {% endfor %}
         </table>
+
+        <br>
+        <a href="{{ url_for('main.index') }}"><button>Subir otra factura</button></a>
     </div>
 </body>
 </html>

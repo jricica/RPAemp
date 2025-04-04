@@ -1,21 +1,14 @@
+import re
 import pdfplumber
 import pytesseract
-from PIL import Image
-import re
 
 def leer_pdf(pdf_path):
-    """
-    Esta función extrae el texto de un archivo PDF, usando pdfplumber y Tesseract OCR en caso de necesitarlo.
-    """
     texto = ""
-
     try:
-        # Usamos pdfplumber para intentar extraer texto de PDFs complejos
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
-                texto += page.extract_text()
+                texto += page.extract_text() or ""
 
-        # Si no se encuentra texto, usamos OCR
         if not texto.strip():
             print("Texto no encontrado, utilizando OCR...")
             with pdfplumber.open(pdf_path) as pdf:
@@ -26,57 +19,49 @@ def leer_pdf(pdf_path):
     except Exception as e:
         print(f"Error al leer el PDF: {e}")
 
-    print("Texto extraído del PDF:", texto)
     return texto
 
 
 def extraer_info(texto):
-    """
-    Esta función extrae información relevante del texto de la factura, como el cliente, el total facturado, la fecha y hora de emisión.
-    Utiliza expresiones regulares para encontrar los valores correspondientes en el texto.
-    """
-    total_facturado = None
-    cliente = None
-    fecha_emision = None
-    nit = None
+    total_facturado = "No disponible"
+    cliente = "Desconocido"
+    fecha_emision = "No disponible"
+    nit = "No disponible"
+    autorizacion = "No disponible"
 
-    # Buscar el cliente
-    match_cliente = re.search(r"Nombre Receptor:\s*(.*)", texto)
+    # Cliente (más robusto)
+    match_cliente = re.search(r"Nombre Receptor:\s*(.+?)\s+Fecha y hora", texto)
     if match_cliente:
         cliente = match_cliente.group(1).strip()
 
-    # Buscar el total facturado
-    match_total = re.search(r"TOTALES:\s*[\d,\.]+\s*[\d,\.]+\s*([\d,\.]+)", texto)
+    # Total (varios formatos posibles)
+    match_total = re.search(r"TOTALES:\s*[\d,\.]+\s*([\d,\.]+)", texto)
+    if not match_total:
+        match_total = re.search(r"Total \(Q\)\s+[\d,\.]+\s+[\d,\.]+\s+([\d,\.]+)", texto)
     if match_total:
         total_facturado = match_total.group(1).strip()
 
-    # Buscar la fecha de emisión
-    match_fecha = re.search(r"Fecha y hora de emision:\s*([\d\-]+\s[\d:]+)", texto)
+    # Fecha y hora de emisión
+    match_fecha = re.search(r"Fecha y hora de emision:\s*([\d]{1,2}-[a-z]{3}-[\d]{4} [\d:]{5,8})", texto, re.IGNORECASE)
     if match_fecha:
         fecha_emision = match_fecha.group(1).strip()
 
-    # Buscar el NIT
-    match_nit = re.search(r"NIT Receptor:\s*(\d+)", texto)
+    # NIT receptor
+    match_nit = re.search(r"NIT Receptor:\s*([0-9A-Z\-]+)", texto)
     if match_nit:
         nit = match_nit.group(1).strip()
 
-    # Si no se encuentran, asignamos valores por defecto
-    if not total_facturado:
-        total_facturado = "No disponible"
-    
-    if not cliente:
-        cliente = "Desconocido"
-    
-    if not fecha_emision:
-        fecha_emision = "No disponible"
-    
-    if not nit:
-        nit = "No disponible"
+    # Número de autorización (busca UUID o línea donde se mezcle con NIT)
+    match_autorizacion = re.search(r"NÚMERO DE AUTORIZACIÓN:\s*\n?[^:]*\s*Nit Emisor:\s*[^\s]+\s+([A-F0-9\-]{20,})", texto, re.IGNORECASE)
+    if not match_autorizacion:
+        match_autorizacion = re.search(r"[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}", texto, re.IGNORECASE)
+    if match_autorizacion:
+        autorizacion = match_autorizacion.group(1).strip()
 
-    # Devuelve los datos extraídos
     return {
-        "total_facturado": total_facturado,
         "cliente": cliente,
+        "total_facturado": total_facturado,
         "fecha_emision": fecha_emision,
-        "nit": nit
+        "nit": nit,
+        "autorizacion": autorizacion
     }
